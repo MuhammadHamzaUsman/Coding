@@ -1,0 +1,32 @@
+height = 10
+width = 10
+color = ""
+List = []
+color_list = ["⬜","⬛","⬛","⬛","⬜"]
+ 
+for i in range(height) :
+     temp_list = []
+     for j in range(width) :
+         temp_list.append('')
+     List.append(temp_list)
+
+def colorer (List, low, high, color) :
+    for layer in range(height) :
+        if layer >= low and layer <= high :
+            for cell in range(width) :
+                if cell >= low and cell <= high :
+                    List[layer][cell] = color
+    return List
+
+def display (List) :
+    for layer in List :
+        for cell in layer :
+            print(cell, end = "")
+        print()
+        
+for i in range(len(color_list)) :
+    high_index = width - 1 -i
+    List = colorer(List, i, high_index, color_list[i])
+    display(List)
+    print()
+    
