@@ -1,0 +1,22 @@
+setting
+{
+   randomness F;
+   random_line 0;
+   cp F;
+   computer_play_line 0;
+   cvc F;
+   cvcs 0;
+   cap 2;
+   caps 2;
+}
+default
+{
+   randomness F;
+   random_line 0;
+   cp F;
+   computer_play_line 0;
+   cvc F;
+   cvcs 0;
+   cap 2;
+   caps 2;
+}
