@@ -1,0 +1,8 @@
+#include<stdio.h>
+voidmain()
+{
+int a, b, c ;
+printf("Enter first no :");
+scanf("%d", a);
+printf("%d", a);
+}

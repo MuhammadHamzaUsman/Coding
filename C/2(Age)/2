@@ -1,0 +1,8 @@
+#include<stdio.h>
+void main()
+{
+char grade;
+int value = 25;
+grade = 'A';
+printf("value is %i");
+}
