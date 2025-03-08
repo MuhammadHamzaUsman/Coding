@@ -337,3 +337,68 @@ void Employee :: raiseSalary(double percent)
        std :: cerr << "\nPercentage: \"" << percent << "\" is negative no operation performed.\n";
     }
 }
+
+// Date Class
+
+Date :: Date(int date_c, int month_c, int year_c)
+{
+    setDate(date_c);
+    setMonth(month_c);
+    setYear(year_c);
+}
+
+void Date :: setDate(int new_date)
+{
+    if(new_date > 0 && new_date < 32)
+    {
+        date = new_date;
+    }
+    else
+    {
+        std :: cerr << "\nDate: \"" << new_date << "\" less than 1 or greater than 31.\n";
+    }
+}
+
+void Date :: setMonth(int new_month)
+{
+    if(new_month > 0 && new_month < 13)
+    {
+        month = new_month;
+    }
+    else
+    {
+        std :: cerr << "\nMonth: \"" << new_month << "\" less than 1 or greater than 12.\n";
+    }
+}
+
+void Date :: setYear(int new_year)
+{
+    if(new_year > 0)
+    {
+        year = new_year;
+    }
+    else
+    {
+        std :: cerr << "\nYear: \"" << new_year << "\" less than 1.\n";
+    }
+}
+
+int Date :: getDate() const
+{
+    return date;
+}
+
+int Date :: getMonth() const
+{
+    return month;
+}
+
+int Date :: getYear() const
+{
+    return year;
+}
+
+void Date :: display() const
+{
+    std :: cout << std :: setw(2) << std :: setfill('0') << "\nDate: " << getDate() << " Month: " << getMonth() << " Year: " << getYear() << std :: endl;
+}

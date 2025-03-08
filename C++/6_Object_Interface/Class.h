@@ -88,3 +88,18 @@ class Employee
         std :: string first_name, last_name;
         double monthly_salary;
 };
+
+class Date
+{
+    public:
+        explicit Date(int date_c, int month_c, int year_c);
+        void setDate(int new_date);
+        void setMonth(int new_month);
+        void setYear(int new_year);
+        int getDate() const;
+        int getMonth() const;
+        int getYear() const;
+        void display() const;
+    private:
+        int date, month, year;
+};

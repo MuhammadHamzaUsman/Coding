@@ -4,15 +4,17 @@ using namespace std;
 
 int main()
 {
-    Employee emp1("Ali", "Nadeem", 100000);
-    cout << "\nFirst Name: " << emp1.getFirstName() << "\nLast Name: " << emp1.getLastName() << "\nMonthly Salary: " << emp1.getMonthlySalary();
-    emp1.setFirstName("Huzaifa");
-    emp1.setLastName("Arshad");
-    emp1.setMonthlySalary(-150000);
-    cout << "\nFirst Name: " << emp1.getFirstName() << "\nLast Name: " << emp1.getLastName() << "\nMonthly Salary: " << emp1.getMonthlySalary();
-    emp1.setMonthlySalary(150000);
-    cout << "Monthly Salary: " << emp1.getMonthlySalary();
-    emp1.raiseSalary(10);
-    cout << "\nMonthly Salary: " << emp1.getMonthlySalary();
+    Date d1(12,01,2025);
+    d1.display();
+    d1.setDate(-90);
+    d1.setDate(90);
+    d1.setMonth(-90);
+    d1.setMonth(90);
+    d1.setYear(-90);
+    d1.display();
+    d1.setDate(9);
+    d1.setMonth(9);
+    d1.setYear(2024);
+    d1.display();
     return 0;
 }
