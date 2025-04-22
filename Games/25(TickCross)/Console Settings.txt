@@ -1,1 +1,0 @@
-Font Size : 36 & Bold & Font : Consolas
