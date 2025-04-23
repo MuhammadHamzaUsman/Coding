@@ -23,10 +23,10 @@ int randomEvenNumber(int, int, default_random_engine &);
 double pointDist(array<int, 2>, array<int, 2>);
 array<array<int, 2>, 2> getMazeStartEnd(const vector<vector<char>> &);
 array<int, 2> randomBranchNode(array<int, 2>, int, int, default_random_engine &, int, int);
-void displayMaze(const vector<vector<States>> &);
+void displayMaze(const vector<vector<char>> &, int);
 void displayMazeViewDist(const vector<vector<char>> &, array<array<int, 2>, 2>, array<int, 2>, string, string, string, char);
 vector<vector<char>> generateMaze(int, int, int, int);
-void writeToFile(const vector<vector<char>> &);
+void writeToFile(const vector<vector<char>> &, int);
 void drawPath(vector<vector<States>> &, array<int, 2>, array<int, 2>, bool, bool);
 bool playMaze(vector<vector<char>>, array<array<int, 2>, 2>, array<array<int, 2>, 2>, int, int, int, char, char, bool);
 array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &, array<array<int, 2>, 2>, array<int, 2>, int, int, string, string, char);
@@ -45,27 +45,25 @@ double pointDist(array<int, 2> start, array<int, 2> end)
     return sqrt(pow(start[0] - end[0], 2) + pow(start[1] - end[1], 2));
 }
 
-void displayMaze(const vector<vector<States>> &maze)
+void displayMaze(const vector<vector<char>> &maze, int col_width)
 {
     string output = "";
+    string empty_col = "";
+
+    for(int i = 1; i < col_width; i++)
+    {
+        empty_col += " ";
+    }
+
     cout << "\033[0;0H";
 
-    for(const auto &row : maze)
+    for(const vector<char> &row : maze)
     {
-        for(const auto &col : row)
+        for(char col : row)
         {
-            if(col == States :: NODES)
-                cout << "N ";
-            if(col == States :: WALL)
-                cout << "W ";
-            if(col == States :: START)
-                cout << "S ";
-            if(col == States :: END)
-                cout << "E ";
-            if(col == States :: PATH)
-                cout << "P ";
+            output = output + col + empty_col;
         }
-        cout << "\n";
+        output += "\n";
     }
 
     cout << output;
@@ -125,24 +123,38 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
     // adding start to nodes, so that maze starts from start
     nodes.push_back(start);
 
+    int node_max_dist = 0;
+    int point_x_min;
+    int point_y_min;
+    int point_x_max;
+    int point_y_max;
+
     // generates random nodes, ensure that they do not excced MAX_DIST and add them to maze and nodes
     for(int i = 0; i < no_nodes; i++)
     {
-        // generating random nodes on odd points
-        array<int, 2> point = {randomOddNumber(1, maze_width - 1, engine), randomOddNumber(1, maze_height - 1, engine)};
+        // generating random range for odd nodes
+        node_max_dist = randomEvenNumber(MIN_DIST, MAX_DIST, engine);
+        point_x_max = nodes[i][0] + node_max_dist;
+        point_x_min = nodes[i][0] - node_max_dist;
+        point_y_max = nodes[i][1] + node_max_dist;
+        point_y_min = nodes[i][1] - node_max_dist;
 
-        // will generate nodes until their distance is not >= max_dist_temp whic can be in range(MIN_DIST-MAX_DIST)
-        int max_dist_temp = randomEvenNumber(MIN_DIST, MAX_DIST, engine);
-        while(pointDist(nodes[i], point) >= MAX_DIST)
-        {
-            point = {randomOddNumber(1, maze_width - 1, engine), randomOddNumber(1, maze_height - 1, engine)};
-        }
+        // ensuring they are in bounds
+
+        point_x_max = (point_x_max > maze_width - 1) ? maze_width - 1 : point_x_max;
+        point_x_min = (point_x_min < 1) ? 1 : point_x_min;
+        point_y_max = (point_y_max > maze_height - 1) ? maze_height - 1 : point_y_max;
+        point_y_min = (point_y_min < 1) ? 1 : point_y_min;
+
+        array<int, 2> point = {randomOddNumber(point_x_min, point_x_max, engine), randomOddNumber(point_y_min, point_y_max, engine)};
 
         // placing on maze
         maze[point[1]][point[0]] = States :: NODES;
         // adding to vector nodes
         nodes.push_back(point);
     }
+
+    cout << "      Points Generated\n";
     
     // connects all random points genrated with above in order of thier generation then connects end to nearest Path
     
@@ -159,51 +171,9 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
         // o: path will first go vertical then horizontal
         // 0: path will go first horizontal then vertical
         bool first_vertical = dist(engine) % 2;
-
-        // if on last node start from top left of maze and find nearest node which path and set it to start node
-        // node which will store node nearest to end
-        array<int, 2> ending_node;
-        bool is_last = false;
-
-        // if last node
-        if(i == nodes.size() - 1)
-        {
-            // calculating diagnol distancea and adding small value to ensure it is largest
-            double smallest_dist = sqrt((maze_width * maze_width) + (maze_height * maze_height)) + 2;
-
-            for(int y = 0; y < maze_height - 1; y++)
-            {
-                for(int x = 0; x < maze_width - 1; x++)
-                {
-                    // node to find distance to test
-                    array<int, 2> test_node = {x, y};
-                    
-                    // if test node is Path
-                    if(maze[test_node[1]][test_node[0]] == States :: PATH)
-                    {
-                        // distance of test node
-                        double points_dist = pointDist(end, test_node);
-                        
-                        // if points_dist smaller then set smallest_dist to it 
-                        // and ending_node to test_node
-                        if(points_dist < smallest_dist)
-                        {
-                            smallest_dist = points_dist;
-                            ending_node = test_node;
-                        }
-                    }    
-                }
-                is_last = true;
-            }
-            
-            // setting start_node to end and end_node to ending_node
-            // it will result in path directlt from end to nearest node that is Path
-            start_node = end;
-            end_node = ending_node;
-        }
         
         // if starting or ending point do not move vertical first as it will set border to Path
-        if(i == nodes.size() - 1 || start_node[0] == start[0] || start_node[1] == start[1])
+        if(start_node[0] == start[0] || start_node[1] == start[1])
         {
             first_vertical = false;
         }
@@ -221,8 +191,10 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
             # # . # # #
         */
 
-        drawPath(maze, start_node, end_node, first_vertical, is_last);
+        drawPath(maze, start_node, end_node, first_vertical, false);
     }
+
+    cout << "      Points Connected\n";
 
     // for each node generate branches from it to direction that does not have exsisting Paths 
     for(size_t node_index = 1; node_index < nodes.size(); node_index++)
@@ -262,6 +234,8 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
             }   
         }
     }
+
+    cout << "      Branches Created\n";
 
     // test all odd nodes to find which does not have Path to them and draw a Path to them and a branch from it
     for(int y = 1; y <= maze_height - 2; y += 2)
@@ -348,7 +322,46 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
         }
     }
 
+    cout << "Non Reachable Spaces Removed\n";
+
+    // for last node
+    // if on last node start from top left of maze and find nearest node which path and set it to start node
+    // nearest_node is node which will store node nearest to end
+    // calculating diagnol distancea and adding small value to ensure it is largest
+    array<int, 2> nearest_node;
+    double smallest_dist = sqrt((maze_width * maze_width) + (maze_height * maze_height)) + 2;
+
+    for(int y = maze_height - 2; y >= 0; y--)
+    {
+        for(int x = maze_width - 2; x >= 0 ; x--)
+        {
+            // node to find distance to test
+            array<int, 2> test_node = {x, y};
+            
+            // if test node is Path
+            if(maze[test_node[1]][test_node[0]] == States :: PATH)
+            {
+                // distance of test node
+                double points_dist = pointDist(end, test_node);
+                
+                // if points_dist smaller then set smallest_dist to it 
+                // and nearest_node to test_node
+                if(points_dist < smallest_dist)
+                {
+                    smallest_dist = points_dist;
+                    nearest_node = test_node;
+                }
+            }    
+        }
+    }
+    // it will draw a path directt from end to nearest node that is Path
+    drawPath(maze, end, nearest_node, false, true);
+
+    cout << "       End Connected\n";
+
+
     // convert maze from States datatype to char datatype
+    
     vector<vector<char>> maze_output;
     
     for(int y = 0; y < maze_height; y++)
@@ -365,6 +378,8 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
         }
         maze_output.push_back(temp);
     }
+
+    cout << "\t  Converted";
     
     return maze_output;
 }
@@ -730,13 +745,19 @@ void displayMazeViewDist(const vector<vector<char>> &maze, array<array<int, 2>, 
     cout << "\033[0;0H" << output;
 }
 
-void writeToFile(const vector<vector<char>> &maze)
+void writeToFile(const vector<vector<char>> &maze, int file_col_width)
 {
     ofstream maze_output("Maze.txt");
 
+    string empty_col = "";
+    for(int i = 1; i < file_col_width; i++)
+    {
+        empty_col += " ";
+    }
+
     if(!maze_output)
     {
-        cerr << "File not Found or Error creating file.";
+        cerr << "\nFile not Found or Error creating file.";
         maze_output.close();
     }
     else
@@ -745,12 +766,11 @@ void writeToFile(const vector<vector<char>> &maze)
         {
             for(char col : row)
             {
-                maze_output << col << "  ";
+                maze_output << col << empty_col;
             }
             maze_output << "\n";
         }
-
-        cout << "Maze saved successfully.";
+        cout << "\nMaze saved successfully.";
     }
 
     maze_output << "Maze saved successfully.";
@@ -887,8 +907,9 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
 void menu()
 {
     int col_width = 3; 
+    int file_col_width = 2; 
     array<array<int, 2>, 2> view_distance = {{{2, 2}, {2, 2}}}; 
-    char player_symbol = player_symbol;
+    char player_symbol = 'o';
     char path_symbol = '.';
     int WIDTH = 10;
     int HEIGTH = 10;
@@ -944,8 +965,6 @@ void menu()
                 }while((maze_width <= 0) || (maze_heigth <= 0) || (cin.fail()));
 
                 int no_points = ALPHA * pow(maze_width * maze_heigth, BETA);
-                cout << no_points;
-                cin.get();
                 int no_points_2_per = no_points * 0.02;
                 no_points_2_per = no_points_2_per < 2 ? 2 : no_points_2_per;
                 int lower_limit_no_points = no_points - rand() % no_points_2_per;
@@ -968,15 +987,19 @@ void menu()
 
                     if(generate_menu == 'v')
                     {
+                        system("cls");
                         if(maze_width > WIDTH)
                         {
-                            cout << "Maze can not be printed becuase screen size is less than maze width.\nMaze is written to Maze.txt file.";
-                            writeToFile(maze);
+                            cout << "Maze can not be printed becuase screen size is less than maze width.\n\t\tMaze is written to Maze.txt file.\n";
+                            writeToFile(maze, file_col_width);
                         }
                         else
                         {
-                            
+                            displayMaze(maze, col_width);
+                            char nop;
+                            cin >> nop;
                         }
+                        cin.ignore(100, '\n');
                         cin.get();
                     }
                     else if(generate_menu == 'p')
@@ -1028,7 +1051,12 @@ void menu()
                     }
                     else if(generate_menu == 's')
                     {
-                        writeToFile(maze);
+                        system("cls");
+                        cout << "If maze have more columns than file text will move to next line.\n\t"
+                             << "\t        Saving the maze\n";
+                        writeToFile(maze, file_col_width);
+                        
+                        cin.ignore(100, '\n');
                         cin.get();
                     }
                     else if(generate_menu == 't')
@@ -1082,6 +1110,7 @@ void menu()
                      << "\n\t Column Width(C): " << col_width
                      << "\n\tPlayer Symbol(P): " << player_symbol
                      << "\n\t Path Symbol(R): " << path_symbol
+                     << "\n    Column Width in File(F): " << file_col_width
                      << "\n Screen Dimension(S): Panning mode"
                      << "\nView Distance(V): User Centerd Mode"
                      << "\n\t      Exit: E";
@@ -1118,6 +1147,22 @@ void menu()
                     cout << "  Path Symbol: " << path_symbol
                         << "\nNew Path Symbol: ";
                     cin >> path_symbol;
+                }
+                else if(setting_menu == 'f')
+                {
+                    do{
+                        system("cls");
+                        cout << "  Column Width in File: " << file_col_width
+                             << "\nNew Column Width in File: ";
+                        cin >> file_col_width;
+                        
+                        if(cin.fail())
+                        {
+                            cin.clear();
+                            cin.ignore(100, '\n');
+                        }
+
+                    }while(cin.fail() || file_col_width < 1);
                 }
                 else if(setting_menu == 's')
                 {
