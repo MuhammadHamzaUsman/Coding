@@ -237,140 +237,89 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
 
     cout << "      Branches Created\n";
 
-    // taking a random node from nodes vector to be origin
-    uniform_int_distribution<int> dist_node(0, nodes.size() - 1);
-    array<int, 2> origin_node = nodes[dist_node(engine)];
-
-    // checking all nodes in concentric squares of increasing size which nodes are dissconnected
-    // these are ranges for that sqaure
-    int start_x = origin_node[0];
-    int end_x = origin_node[0];
-    int start_y = origin_node[1];
-    int end_y = origin_node[1];
-
-    // variable to strore by how much to increses x by in case of first row all col are tesed otherwise only first and last
-    int x_diff;
-
-    // variable to store wether all nodes have been checked
-    bool all_nodes_visited = false;
-
     // test all odd nodes to find which does not have Path to them and draw a Path to them and a branch from it
-    while(!all_nodes_visited)
+    for(int y = 1; y <= maze_height - 2; y += 2)
     {
-        for(int y = start_y; y <= end_y; y += 2)
+        for(int x = 1; x <= maze_width - 2; x += 2)
         {
-            for(int x = start_x; x <= end_x; x += x_diff)
+            // count number of blocked spaces ie nodes that have Walls
+            int no_of_blocked_spaces = 0;
+            for(size_t test = 0; test < no_of_tests; test++)
             {
-                // count number of blocked spaces ie nodes that have Walls
-                int no_of_blocked_spaces = 0;
-                for(size_t test = 0; test < no_of_tests; test++)
-                {
-                    if(maze[y + test_conditions[test][1]][x + test_conditions[test][0]] == States :: WALL)
-                        no_of_blocked_spaces++;
-                }
-
-                // if no_of_blocked_spaces are nearest Path and connect to it 
-                if(no_of_blocked_spaces == 4)
-                {
-                    // for creating a branch from node that does not have Path connecting to it
-                    array<int, 2> branch_node;
-                    // node that does not have Path connecting to it
-                    array<int, 2> node = {x, y};
-                    // node to test for its dsitance
-                    array<int, 2> test_node = {};
-
-                    // calculating diagnol distancea and adding small value to ensure it is largest
-                    double minimum_distance = sqrt((maze_width * maze_width) + (maze_height * maze_height)) + 2;
-                    // it will store distance from node to test_node
-                    double distance = 0;
-
-                    // it will start from node and test all node in consectrich squares from it
-                    // these gives ranges of sqaure to test
-                    int y_start = y, y_end = y;
-                    int x_start = x, x_end = x;
-
-                    while(distance < minimum_distance)
-                    {
-                        // incre/decrements y by 2 so that only odd node are tested  and enusriing that ranges are in bounds same for x
-                        y_start -= 2;
-                        y_start = (y_start < 1) ? 1 : y_start;
-                        y_end += 2;
-                        y_end = (y_end > maze_height - 2) ? maze_height - 2 : y_end;
-
-                        x_start -= 2;
-                        x_start = (x_start < 1) ? 1 : x_start;
-                        x_end += 2;
-                        x_end = (x_end > maze_width - 2) ? maze_width - 2 : x_end;
-
-                        // test all nodes in ranges that are path and find shortest distance
-                        for(int y_test = y_start; y_test <= y_end; y_test += 2)
-                        {
-                            for(int x_test = x_start; x_test <= x_end; x_test += 2)
-                            {
-                                // if test nodes is Path
-                                if(maze[y_test][x_test] == States :: PATH)
-                                {
-                                    test_node = {x_test, y_test};
-                                    // find distance to it
-                                    distance = pointDist(node, test_node);
-                                    
-                                    // if distance is greater than previous smallest distance break because we are testing in conctric squares
-                                    if(distance > minimum_distance)
-                                        break;
-
-                                    // if distance is less then randomly create a branch(30%)
-                                    if(distance < minimum_distance && randomEvenNumber(0, 18, engine) <= 4)
-                                    {
-                                        branch_node = {x_test, y_test};
-                                        minimum_distance = distance;
-                                    }   
-                                }
-                            }
-                            
-                            if(distance > minimum_distance)
-                                break;
-                        }
-                    }
-
-                    drawPath(maze, branch_node, node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
-
-                    // generate 2 random branches and connect them to node
-                    branch_node = randomBranchNode(node, 2, 2, engine, maze_width, maze_height);
-                    drawPath(maze, node, branch_node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
-                }
-                
-                // if y is on first or last row than test all columns other wise only test first and last column
-                if(y == start_y || y == end_y)
-                    x_diff = 2;
-                else
-                    x_diff = end_x - start_x;
+                if(maze[y + test_conditions[test][1]][x + test_conditions[test][0]] == States :: WALL)
+                    no_of_blocked_spaces++;
             }
-        }    
-        // if all of these these are true then all node ae 
-        if(start_x == 1 && end_x == maze_width - 2 && start_y == 1 && end_y == maze_height - 2)
-            all_nodes_visited = true;
 
-        // updating values of start_x and end_x
-        start_x -= 2;
-        end_x += 2;
+            // if no_of_blocked_spaces are nearest Path and connect to it 
+            if(no_of_blocked_spaces == 4)
+            {
+                // for creating a branch from node that does not have Path connecting to it
+                array<int, 2> branch_node;
+                // node that does not have Path connecting to it
+                array<int, 2> node = {x, y};
+                // node to test for its dsitance
+                array<int, 2> test_node = {};
 
-        // ensuring they are in bounds
-        if(start_x < 1)
-            start_x = 1;
-        
-        if(end_x > maze_width - 2)
-            end_x = maze_width - 2;
+                // calculating diagnol distancea and adding small value to ensure it is largest
+                double minimum_distance = sqrt((maze_width * maze_width) + (maze_height * maze_height)) + 2;
+                // it will store distance from node to test_node
+                double distance = 0;
 
-        // updating values of start_y and end_y
-        start_y -= 2;
-        end_y += 2;
+                // it will start from node and test all node in consectrich squares from it
+                // these gives rnges of sqqaure to test
+                int y_start = y, y_end = y;
+                int x_start = x, x_end = x;
 
-        // ensuring they are in bounds
-        if(start_y < 1)
-            start_y = 1;
-        
-        if(end_y > maze_height - 2)
-            end_y = maze_height - 2;
+                while(distance < minimum_distance)
+                {
+                    // incre/decrements y by 2 so that only odd node are tested  and enusriing that ranges are in bounds same for x
+                    y_start -= 2;
+                    y_start = (y_start < 1) ? 1 : y_start;
+                    y_end += 2;
+                    y_end = (y_end > maze_height - 2) ? maze_height - 2 : y_end;
+
+                    x_start -= 2;
+                    x_start = (x_start < 1) ? 1 : x_start;
+                    x_end += 2;
+                    x_end = (x_end > maze_width - 2) ? maze_width - 2 : x_end;
+
+                    // test all nodes in ranges that are path and find shortest distance
+                    for(int y_test = y_start; y_test <= y_end; y_test += 2)
+                    {
+                        for(int x_test = x_start; x_test <= x_end; x_test += 2)
+                        {
+                            // if test nodes is Path
+                            if(maze[y_test][x_test] == States :: PATH)
+                            {
+                                test_node = {x_test, y_test};
+                                // find distance to it
+                                distance = pointDist(node, test_node);
+                                
+                                // if distance is greater than previous smallest distance break because we are testing in conctric squares
+                                if(distance > minimum_distance)
+                                    break;
+
+                                // if distance is less then randomly create a branch(30%)
+                                if(distance < minimum_distance && randomEvenNumber(0, 18, engine) <= 4)
+                                {
+                                    branch_node = {x_test, y_test};
+                                    minimum_distance = distance;
+                                }   
+                            }
+                        }
+                        
+                        if(distance > minimum_distance)
+                            break;
+                    }
+                }
+
+                drawPath(maze, branch_node, node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
+
+                // generate 2 random branches and connect them to node
+                branch_node = randomBranchNode(node, 2, 2, engine, maze_width, maze_height);
+                drawPath(maze, node, branch_node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
+            }
+        }
     }
 
     cout << "Non Reachable Spaces Removed\n";
@@ -543,7 +492,6 @@ array<int, 2> randomBranchNode(array<int, 2> node, int lower_limit, int upper_li
 
 array<array<int, 2>, 2> getMazeStartEnd(const vector<vector<char>> &maze)
 {
-    cout << "\nin GMES";
     // start_x is 0 as maze will always start from left
     int start_x = 0;
     // end_y is maze_width -1 as maze will always end in right
@@ -567,7 +515,6 @@ array<array<int, 2>, 2> getMazeStartEnd(const vector<vector<char>> &maze)
             end_y = row;
         }
     }
-    cout << "\nout GMES";
 
     // return in format [starting[x, y], ending[x, y]]
     return {{{start_x, start_y}, {end_x, end_y}}};
@@ -873,7 +820,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
     // (1 - (-1) = 2) 
     // and set view_dist[0][0] to bounds
     // if view_dist[0][1] is greater than bounds than 
-    // subtract overflow from view_dist[0][0] to keep no of blocks displayed equal to width 
+    // subtract it from view_dist[0][0] to keep no of blocks displayed equal to width 
     // and set view_dist[0][1] to bounds 
     if(view_dist[0][0] < 0)
     {
@@ -1020,7 +967,7 @@ void menu()
                 int lower_limit_no_points = no_points - rand() % no_points_2_per;
                 int higher_limit_no_points = no_points + rand() % no_points_2_per;
                 vector<vector<char>> maze = generateMaze(lower_limit_no_points, higher_limit_no_points, maze_width, maze_heigth);
-                
+
                 while(generate_menu != 'e')
                 {
                     system("cls");
