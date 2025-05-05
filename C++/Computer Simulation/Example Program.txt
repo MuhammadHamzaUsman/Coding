@@ -1,0 +1,50 @@
+Larger Number		
+Location	Number	Instruction
+00	1099	Read A into 99
+01	1098	Read B into 98
+02	2099	Load A into Accumulator
+03	3198	Subtract B from A
+04	4108	Branch to 08 if negative
+05	1199	Write A to screen
+06	4300	Halt Program
+07	1198	Write B to screen
+08	4300	Halt Program
+98	0000	Variable B
+99	0000	Variable A
+		
+Sentienel loop		
+Location	Number	Instruction
+00	1099	Read A into 99
+01	2099	Load A into Acc
+02	4107	Branch to 07 if A -ive
+03	2098	Load B into Acc
+04	3099	Add A to B
+05	2198	Store Acc to B
+06	4000	Branch to 00
+07	1198	Write B to Screen
+08	4300	Halt Program
+98	0	Variable B
+99	0000	Variable A
+		
+Largest in specified numbers		
+Location	Number	Instruction
+00	1099	Read Limit into 99
+01	2097	Load 95 to Acc
+02	1098	Read A to 97
+03	3198	Subtract A from Acc
+04	4105	If -ive A is largest
+05	2195	Store A  in 95
+06	2099	Load Limit in Acc
+07	3198	Subtract Counter From Limit
+08	4213	Branch to 13 if total is 0
+09	2098	Load Counter into Acc
+10	3096	Add increment to Counter
+11	2198	Store Acc to Counter
+12	4001	Goto 01
+13	1195	Write to Screen
+14	4300	Halt
+95	0000	Largest Number
+96	0001	Increment
+97	0000	Variable A
+98	0001	Counter
+99	0000	Limit

@@ -1,0 +1,36 @@
+// Input/output operations
+    const int read = 10; // Read a word(int) from the keyboard into a specific location in memory.
+    const int write = 11; // Write a word(int) from a specific location in memory to the screen.
+    const int writeNewLine = 12; // Write new line character to the screen.
+    const int readString = 13; // Read a string from the keyboard into a specific location in memory according to method in Read string function.
+    const int writeString = 14; // Write a string from the memory address to screen according to method in Write string function.
+    const int readFloat = 15; // Read a float from the keyboard into a specific location in memory according to method in Read float function.
+    const int writeFloat = 16; // Write a float from the memory address to screen according to method in Write float function.
+    // Load and store operations
+    const int load = 20; // Load a word(int) from a specific location in memory into the accumulator.
+    const int store = 21; // Store a word(int) from the accumulator into a specific location in memory.
+    const int loadFloat = 22; // Load 2 words(float) from a specific location in memory into the accumulator.
+    const int storeFloat = 23; // Store 2 words(float) from the accumulator into a specific location in memory.
+    // Arithmetic operations
+    const int add = 30; // Add a word(int) from a specific location in memory to the word in the accumulator (leave result in accumulator).
+    const int subtract = 31; // Subtract a word(int) from a specific location in memory from the word in the accumulator (leave result in accumulator).
+    const int divide = 32; // Divide a word(int) from a specific location in memory into the word in the accumulator (leave result in accumulator).
+    const int multiply = 33; // Multiply a word(int) from a specific location in memory by the word in the accumulator (leave result in accumulator).
+    const int modulus = 34; // Divide a word(int) from a specific location in memory into the word in the accumulator (leave remainder in accumulator).
+    const int exponentiation = 35; // Exponenet  is a word(int) from a specific location in memory that raises the word in the accumulator (leave reult in accumulator).
+    const int addFloat = 36; // Add 2 words(float) from a specific location in memory to the word in the accumulator (leave result in accumulator).
+    const int subtractFloat = 37; // Subtract 2 words(float) from a specific location in memory from the word in the accumulator (leave result in accumulator).
+    const int divideFloat = 38; // Divide 2 words(float) from a specific location in memory into the word in the accumulator (leave result in accumulator).
+    const int multiplyFloat = 39; // Multiply 2 words(float) from a specific location in memory by the word in the accumulator (leave result in accumulator).
+    // Transfer-of-control operations
+    const int branch = 40; // Branch to a specific location in memory.
+    const int branchneg = 41; // Branch to a specific location in memory if the accumulator is negative.
+    const int branchzero = 42;//  Branch to a specific location in memory if the accumulator is zero.
+    const int halt = 43; // Halt—the program has completed its task
+    const int branchTenthAligned = 45; // branches to only locations in memory that are multiple of 10 where memory address is interpreted as multiple of 10
+    const int branchRelative = 46; // Branch to a specific location that is ahead in memory relative to current address where memory address is number of address ahead of current
+    const int branchRelativeNeg = 47; // Branch to a specific location that is ahead in memory relative to current address where memory address is number of address ahead of current if the accumulator is negative.
+    const int branchRelativeZero = 48; // Branch to a specific location that is ahead in memory relative to current address where memory address is number of address ahead of current if the accumulator is zero.
+    // Debug operations
+    const int SML_DEBUG = 4400; // dumps memory and register after execution of each string
+    const int NO_SML_DEBUG = 4401; // turns off debug mode
