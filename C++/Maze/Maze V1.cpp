@@ -226,11 +226,11 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
                 continue;
             else
             {
-                array<int, 2> branch_node = randomBranchNode(node, 2, 4, engine, maze_width, maze_height); // test these to find which works best
-                drawPath(maze, node, branch_node, (randomOddNumber(1, 18, engine) < 8), false);
+                array<int, 2> branch_node = randomBranchNode(node, 4, 4, engine, maze_width, maze_height); // test these to find which works best
+                drawPath(maze, node, branch_node, (randomEvenNumber(0, 2, engine) == 0), false);
                 node = branch_node;
-                branch_node = randomBranchNode(node, 2, 2, engine, maze_width, maze_height); // test these to find which works besr
-                drawPath(maze, node, branch_node, (randomOddNumber(1, 18, engine) < 8), false);
+                branch_node = randomBranchNode(node, 4, 4, engine, maze_width, maze_height); // test these to find which works besr
+                drawPath(maze, node, branch_node, (randomEvenNumber(0, 2, engine) == 0), false);
             }   
         }
     }
@@ -313,11 +313,14 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
                     }
                 }
 
-                drawPath(maze, branch_node, node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
+                drawPath(maze, branch_node, node, (randomEvenNumber(0, 2, engine) == 0), false);
 
-                // generate 2 random branches and connect them to node
-                branch_node = randomBranchNode(node, 2, 2, engine, maze_width, maze_height);
-                drawPath(maze, node, branch_node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
+                // generate 3 random branches and connect them to node
+                for(int i = 0; i < 3; i++)
+                {
+                    branch_node = randomBranchNode(node, 4, 4, engine, maze_width, maze_height);
+                    drawPath(maze, node, branch_node, (randomEvenNumber(0, 2, engine) == 0), false);
+                }
             }
         }
     }
@@ -778,6 +781,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
 {
     int maze_width = maze[0].size();
     int maze_heigth = maze.size();
+
     // view_dist format
     // view_dist[0][0]: no of blocks to left
     // view_dist[0][1]: no of blocks to right
@@ -785,9 +789,11 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
     // view_dist[1][1]: no of blocks to down
 
     // fisrt time it is centerd around user
+    // in case of odd Dimesion one is add to ensure that total colums remain same otherwise 
+    // due to integer division one columns would not be counted
     if(view_dist[0][0] + view_dist[0][1] + view_dist[1][0] + view_dist[1][1] == 0)
-        view_dist = {{{player_pos[0] - WIDTH / 2, (player_pos[0] + WIDTH / 2) + 1}, 
-                    {player_pos[1] - HEIGTH / 2, (player_pos[1] + HEIGTH / 2) + 1}}};
+        view_dist = {{{player_pos[0] - WIDTH / 2, (player_pos[0] + (WIDTH % 2 == 0 ? WIDTH / 2 : WIDTH / 2 + 1))}, 
+                    {player_pos[1] - HEIGTH / 2, (player_pos[1] + (HEIGTH % 2 == 0 ? HEIGTH / 2: HEIGTH / 2 + 1))}}};
 
     // if user get in range of 3 blocks of left edge move pov to left so user remains on screen
     // else if user get in range of 3 blocks of right edge move pov to right so user remains on screen
@@ -796,7 +802,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
         view_dist[0][0] -= 1;
         view_dist[0][1] -= 1;
     }
-    else if(player_pos[0] > view_dist[0][1] - 3)
+    else if(player_pos[0] >= view_dist[0][1] - 3)
     {
         view_dist[0][0] += 1;
         view_dist[0][1] += 1;
@@ -808,7 +814,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
         view_dist[1][0] -= 1;
         view_dist[1][1] -= 1;
     }
-    else if(player_pos[1] > view_dist[1][1] - 3)
+    else if(player_pos[1] >= view_dist[1][1] - 3)
     {
         view_dist[1][0] += 1;
         view_dist[1][1] += 1;
@@ -820,21 +826,22 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
     // (1 - (-1) = 2) 
     // and set view_dist[0][0] to bounds
     // if view_dist[0][1] is greater than bounds than 
-    // subtract it from view_dist[0][0] to keep no of blocks displayed equal to width 
+    // subtract overflow from view_dist[0][0] to keep no of blocks displayed equal to width 
     // and set view_dist[0][1] to bounds 
+    // for bound checking check orignal dimension but for correction use display dimension
     if(view_dist[0][0] < 0)
     {
         view_dist[0][1] -= view_dist[0][0];
         
         if(view_dist[0][1] > maze_width)
-            view_dist[0][1] = maze_width;
+            view_dist[0][1] = WIDTH;
         
         view_dist[0][0] = 0;
     }
     
     if(view_dist[0][1] > maze_width)
     {
-        int overflow = view_dist[0][1] - maze_heigth;
+        int overflow = view_dist[0][1] - maze_width;
         view_dist[0][0] -= overflow;
         
         if(view_dist[0][0] < 0)
@@ -849,9 +856,9 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
         view_dist[1][1] -= view_dist[1][0];
 
         if(view_dist[1][1] > maze_heigth)
-            view_dist[1][1] = maze_heigth;
+            view_dist[1][1] = HEIGTH;
         
-            view_dist[1][0] = 0;
+        view_dist[1][0] = 0;
     }
     
     if(view_dist[1][1] > maze_heigth)
@@ -867,7 +874,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
 
     string bars = "+";
 
-    for(int x = 0; x <= WIDTH; x++)
+    for(int x = view_dist[0][0]; x < view_dist[0][1]; x++)
     {
         bars += bar;
     }
@@ -1028,7 +1035,7 @@ void menu()
                             system("cls");
 
                             array<array<int, 2>, 2> start_end = getMazeStartEnd(maze);
-                            bool won = playMaze(maze, start_end, view_distance, maze_width, maze_heigth, col_width, path_symbol, player_symbol, isViewDistMode);
+                            bool won = playMaze(maze, start_end, view_distance, WIDTH, HEIGTH, col_width, path_symbol, player_symbol, isViewDistMode);
 
                             system("cls");
 

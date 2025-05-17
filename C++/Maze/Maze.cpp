@@ -79,22 +79,22 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
     uniform_int_distribution<int> dist(point_start, point_end);
 
     // 2d Array that stores maze
-    vector<vector<States>> maze = {};
+    vector<vector<States>> maze(maze_height, vector<States>(maze_width, States :: WALL));
 
     // no of nodes that will be generated and stored in vector nodes
     int no_nodes = dist(engine);
     vector<array<int, 2>> nodes;
 
-    // intializing maze
-    for(size_t y = 0; y < maze_height; y++)
-    {
-        vector<States> temp;
-        for (size_t x = 0; x < maze_width; x++)
-        {
-            temp.push_back(States :: WALL);
-        }
-        maze.push_back(temp);
-    }
+    // // intializing maze
+    // for(size_t y = 0; y < maze_height; y++)
+    // {
+    //     vector<States> temp;
+    //     for (size_t x = 0; x < maze_width; x++)
+    //     {
+    //         temp.push_back(States :: WALL);
+    //     }
+    //     maze.push_back(temp);
+    // }
 
     // maximum and minimum distance that a node can generate away from its previous one
     const int MIN_DIST = 2;
@@ -226,11 +226,15 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
                 continue;
             else
             {
-                array<int, 2> branch_node = randomBranchNode(node, 2, 4, engine, maze_width, maze_height); // test these to find which works best
-                drawPath(maze, node, branch_node, (randomOddNumber(1, 18, engine) < 8), false);
-                node = branch_node;
-                branch_node = randomBranchNode(node, 2, 2, engine, maze_width, maze_height); // test these to find which works besr
-                drawPath(maze, node, branch_node, (randomOddNumber(1, 18, engine) < 8), false);
+                array<int, 2> branch_node = randomBranchNode(node, 4, 4, engine, maze_width, maze_height); // test these to find which works best
+                drawPath(maze, node, branch_node, (randomEvenNumber(0, 2, engine) == 0), false);
+                for(int i = 0; i < 5; i++)
+                {
+                    node = branch_node;
+                    branch_node = randomBranchNode(node, 4, 4, engine, maze_width, maze_height);
+                    drawPath(maze, node, branch_node, (randomEvenNumber(0, 2, engine) == 0), false);
+                }
+
             }   
         }
     }
@@ -239,7 +243,7 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
 
     // taking a random node from nodes vector to be origin
     uniform_int_distribution<int> dist_node(0, nodes.size() - 1);
-    array<int, 2> origin_node = nodes[dist_node(engine)];
+    array<int, 2> origin_node = {randomOddNumber(1, maze_width - 1, engine), randomOddNumber(1, maze_width - 1, engine)};
 
     // checking all nodes in concentric squares of increasing size which nodes are dissconnected
     // these are ranges for that sqaure
@@ -249,7 +253,7 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
     int end_y = origin_node[1];
 
     // variable to strore by how much to increses x by in case of first row all col are tesed otherwise only first and last
-    int x_diff;
+    int x_diff = 2;
 
     // variable to store wether all nodes have been checked
     bool all_nodes_visited = false;
@@ -257,6 +261,13 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
     // test all odd nodes to find which does not have Path to them and draw a Path to them and a branch from it
     while(!all_nodes_visited)
     {
+        // ensuring they are in bounds
+        if(start_y < 1)
+            start_y = 1;
+        
+        if(end_y > maze_height - 2)
+            end_y = maze_height - 2;
+            
         for(int y = start_y; y <= end_y; y += 2)
         {
             for(int x = start_x; x <= end_x; x += x_diff)
@@ -319,7 +330,7 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
                                         break;
 
                                     // if distance is less then randomly create a branch(30%)
-                                    if(distance < minimum_distance && randomEvenNumber(0, 18, engine) <= 4)
+                                    if(distance < minimum_distance && randomEvenNumber(0, 18, engine) == 0)
                                     {
                                         branch_node = {x_test, y_test};
                                         minimum_distance = distance;
@@ -332,11 +343,14 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
                         }
                     }
 
-                    drawPath(maze, branch_node, node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
+                    drawPath(maze, branch_node, node, (randomEvenNumber(0, 2, engine) == 0), false);
 
-                    // generate 2 random branches and connect them to node
-                    branch_node = randomBranchNode(node, 2, 2, engine, maze_width, maze_height);
-                    drawPath(maze, node, branch_node, (randomEvenNumber(0, 18, engine) <= 6 ), false);
+                    // generate 3 random branches and connect them to node
+                    for(int i = 0; i < 3; i++)
+                    {
+                        branch_node = randomBranchNode(node, 4, 4, engine, maze_width, maze_height);
+                        drawPath(maze, node, branch_node, (randomEvenNumber(0, 2, engine) == 0), false);
+                    }
                 }
                 
                 // if y is on first or last row than test all columns other wise only test first and last column
@@ -364,13 +378,6 @@ vector<vector<char>> generateMaze(int point_start, int point_end, int maze_width
         // updating values of start_y and end_y
         start_y -= 2;
         end_y += 2;
-
-        // ensuring they are in bounds
-        if(start_y < 1)
-            start_y = 1;
-        
-        if(end_y > maze_height - 2)
-            end_y = maze_height - 2;
     }
 
     cout << "Non Reachable Spaces Removed\n";
@@ -543,7 +550,6 @@ array<int, 2> randomBranchNode(array<int, 2> node, int lower_limit, int upper_li
 
 array<array<int, 2>, 2> getMazeStartEnd(const vector<vector<char>> &maze)
 {
-    cout << "\nin GMES";
     // start_x is 0 as maze will always start from left
     int start_x = 0;
     // end_y is maze_width -1 as maze will always end in right
@@ -567,7 +573,6 @@ array<array<int, 2>, 2> getMazeStartEnd(const vector<vector<char>> &maze)
             end_y = row;
         }
     }
-    cout << "\nout GMES";
 
     // return in format [starting[x, y], ending[x, y]]
     return {{{start_x, start_y}, {end_x, end_y}}};
@@ -607,7 +612,7 @@ bool playMaze(vector<vector<char>> maze, array<array<int, 2>, 2> start_end, arra
         displayMazeViewDist(maze, view_distance, {player_x, player_y}, empty_col, col_padding, bar, path_symbol);
     else
     {
-        view_distance = {0, 0, 0, 0}; 
+        view_distance = {0, 0, 0, 0};
         view_distance = displayMazeFog(maze, view_distance, {player_x, player_y}, WIDTH, HEIGTH, col_padding, bar, path_symbol);
     }
     
@@ -831,6 +836,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
 {
     int maze_width = maze[0].size();
     int maze_heigth = maze.size();
+
     // view_dist format
     // view_dist[0][0]: no of blocks to left
     // view_dist[0][1]: no of blocks to right
@@ -838,9 +844,11 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
     // view_dist[1][1]: no of blocks to down
 
     // fisrt time it is centerd around user
+    // in case of odd Dimesion one is add to ensure that total colums remain same otherwise 
+    // due to integer division one columns would not be counted
     if(view_dist[0][0] + view_dist[0][1] + view_dist[1][0] + view_dist[1][1] == 0)
-        view_dist = {{{player_pos[0] - WIDTH / 2, (player_pos[0] + WIDTH / 2) + 1}, 
-                    {player_pos[1] - HEIGTH / 2, (player_pos[1] + HEIGTH / 2) + 1}}};
+        view_dist = {{{player_pos[0] - WIDTH / 2, (player_pos[0] + (WIDTH % 2 == 0 ? WIDTH / 2 : WIDTH / 2 + 1))}, 
+                    {player_pos[1] - HEIGTH / 2, (player_pos[1] + (HEIGTH % 2 == 0 ? HEIGTH / 2: HEIGTH / 2 + 1))}}};
 
     // if user get in range of 3 blocks of left edge move pov to left so user remains on screen
     // else if user get in range of 3 blocks of right edge move pov to right so user remains on screen
@@ -849,7 +857,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
         view_dist[0][0] -= 1;
         view_dist[0][1] -= 1;
     }
-    else if(player_pos[0] > view_dist[0][1] - 3)
+    else if(player_pos[0] >= view_dist[0][1] - 3)
     {
         view_dist[0][0] += 1;
         view_dist[0][1] += 1;
@@ -861,7 +869,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
         view_dist[1][0] -= 1;
         view_dist[1][1] -= 1;
     }
-    else if(player_pos[1] > view_dist[1][1] - 3)
+    else if(player_pos[1] >= view_dist[1][1] - 3)
     {
         view_dist[1][0] += 1;
         view_dist[1][1] += 1;
@@ -874,20 +882,21 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
     // and set view_dist[0][0] to bounds
     // if view_dist[0][1] is greater than bounds than 
     // subtract overflow from view_dist[0][0] to keep no of blocks displayed equal to width 
-    // and set view_dist[0][1] to bounds 
+    // and set view_dist[0][1] to bounds
+    // for bound checking check orignal dimension but for correction use display dimension
     if(view_dist[0][0] < 0)
     {
         view_dist[0][1] -= view_dist[0][0];
         
         if(view_dist[0][1] > maze_width)
-            view_dist[0][1] = maze_width;
+            view_dist[0][1] = WIDTH;
         
         view_dist[0][0] = 0;
     }
-    
+
     if(view_dist[0][1] > maze_width)
     {
-        int overflow = view_dist[0][1] - maze_heigth;
+        int overflow = view_dist[0][1] - maze_width;
         view_dist[0][0] -= overflow;
         
         if(view_dist[0][0] < 0)
@@ -902,9 +911,9 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
         view_dist[1][1] -= view_dist[1][0];
 
         if(view_dist[1][1] > maze_heigth)
-            view_dist[1][1] = maze_heigth;
+            view_dist[1][1] = HEIGTH;
         
-            view_dist[1][0] = 0;
+        view_dist[1][0] = 0;
     }
     
     if(view_dist[1][1] > maze_heigth)
@@ -920,7 +929,7 @@ array<array<int, 2>, 2> displayMazeFog(const vector<vector<char>> &maze, array<a
 
     string bars = "+";
 
-    for(int x = 0; x <= WIDTH; x++)
+    for(int x = view_dist[0][0]; x < view_dist[0][1]; x++)
     {
         bars += bar;
     }
@@ -1081,7 +1090,7 @@ void menu()
                             system("cls");
 
                             array<array<int, 2>, 2> start_end = getMazeStartEnd(maze);
-                            bool won = playMaze(maze, start_end, view_distance, maze_width, maze_heigth, col_width, path_symbol, player_symbol, isViewDistMode);
+                            bool won = playMaze(maze, start_end, view_distance, WIDTH, HEIGTH, col_width, path_symbol, player_symbol, isViewDistMode);
 
                             system("cls");
 
